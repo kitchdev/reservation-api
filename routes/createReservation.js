@@ -1,13 +1,17 @@
-import PgConnector from "../controllers/pgConnector.js";
+import reservationService from "../services/ReservationService.js";
 
-// worth maybe doing zod here to validate post body
-
+// userId, date, time, duration, laneIds
 async function createReservation(req, res) {
-  const body = req.body;
+  const { userId, date, time, duration, laneIds } = req.body;
   try {
-    const pgConnector = new PgConnector();
-    const results = await pgConnector.createReservation(body);
-    res.status(200).send(results);
+    const reservationId = await reservationService(
+      userId,
+      date,
+      time,
+      duration,
+      laneIds
+    );
+    res.status(200).send(`reservation ${reservationId} created`);
   } catch (err) {
     console.error(err.message);
     res.status(500).send(err);

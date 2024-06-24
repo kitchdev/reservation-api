@@ -1,16 +1,10 @@
 import { Router } from "express";
-import getUsers from "./getUsers.js";
 import createReservation from "./createReservation.js";
+import getLaneAvailability from "./getLaneAvailability.js";
 
 const router = Router();
 
-router.get("/", (req, res) => {
-  console.log(req);
-  res.send("Hello, World!");
-});
-
-router.get("/get-users", getUsers);
-
+router.get("/get-lane-availability", getLaneAvailability);
 router.post("/create-reservation", createReservation);
 
 export default router;
