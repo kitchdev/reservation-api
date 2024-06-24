@@ -7,7 +7,7 @@ async function getAvailability(req, res) {
     res.status(200).send(results);
   } catch (err) {
     console.error(err.message);
-    res.status(error.code || 500).send(err);
+    res.status(error.code || 500).send(err.message);
   }
 }
 

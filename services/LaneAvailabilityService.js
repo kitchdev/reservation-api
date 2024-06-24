@@ -1,18 +1,11 @@
 import db from "../controllers/pgConnector.js";
-
-const isDateBlocked = async (client, date) => {
-  const res = await client.query(
-    "SELECT * FROM Blocked_Dates WHERE blocked_date = $1",
-    [date]
-  );
-  return res.rows.length > 0;
-};
+import isDateBlocked from "../helpers/isDateBlocked.js";
 
 /**
  *
- * @param {*} date
- * @param {*} time
- * @param {*} duration
+ * @param {string} date
+ * @param {string} time
+ * @param {int} duration
  * @returns
  */
 
@@ -32,7 +25,6 @@ const getLaneAvailability = async (date, time, duration) => {
           WHERE day_of_week = $1 AND start_time <= $2 AND end_time >= ($2 + $3::interval)`,
       [dayOfWeek, time, `${duration} minutes`]
     );
-    console.log({ availabilityRes: availabilityRes.rows });
 
     if (availabilityRes.rows.length === 0) {
       return [];
@@ -64,6 +56,9 @@ const getLaneAvailability = async (date, time, duration) => {
     const availableLanesRes = await client.query(query, queryParams);
 
     return availableLanesRes.rows;
+  } catch (err) {
+    console.error(err.message);
+    throw new Error("error in laneAvailabilityService");
   } finally {
     client.release();
   }

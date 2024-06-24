@@ -1,19 +1,5 @@
 import db from "../controllers/pgConnector.js";
-
-/**
- *
- * @param {*} client
- * @param {*} date
- * @returns
- */
-
-const isDateBlocked = async (client, date) => {
-  const res = await client.query(
-    "SELECT * FROM Blocked_Dates WHERE blocked_date = $1",
-    [date]
-  );
-  return res.rows.length > 0;
-};
+import isDateBlocked from "../helpers/isDateBlocked.js";
 
 /**
  *
@@ -88,31 +74,31 @@ const reservationService = async (userId, date, time, duration, laneIds) => {
       time,
       duration
     );
-    console.log(availableLanes);
+
     const availableLaneIds = availableLanes.map((lane) => lane.id);
-    console.log(laneIds);
+
     if (!laneIds.every((laneId) => availableLaneIds.includes(laneId))) {
       throw new Error("One or more lanes are not available.");
     }
 
     const reservationRes = await client.query(
-      `INSERT INTO Reservations (user_id, reservation_date, reservation_time, duration_minutes)
-          VALUES ($1, $2, $3, $4) RETURNING id`,
-      [userId, date, time, duration]
+      `INSERT INTO Reservations (user_id, reservation_date, reservation_time, duration_minutes, number_of_lanes)
+          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [userId, date, time, duration, laneIds.length]
     );
 
-    const reservationId = reservationRes.rows[0].id;
+    const reservation = reservationRes.rows[0];
 
     for (const laneId of laneIds) {
       await client.query(
         `INSERT INTO Reservation_Lanes (reservation_id, lane_id)
               VALUES ($1, $2)`,
-        [reservationId, laneId]
+        [reservation.id, laneId]
       );
     }
 
     await client.query("COMMIT");
-    return reservationId;
+    return reservation;
   } catch (e) {
     await client.query("ROLLBACK");
     throw e;
