@@ -33,18 +33,32 @@ const getTimeSlotAvailability = async (date, noLanes) => {
       return acc;
     }, []);
 
-    const reservationsRes = await client.query(
-      `SELECT reservation_time, duration_minutes, number_of_lanes FROM Reservations r
+    const { rows } = await client.query(
+      `SELECT reservation_time, reservation_endtime, duration_minutes, number_of_lanes FROM Reservations r
           WHERE reservation_date = $1`,
       [date]
     );
+    console.log(rows);
+
+    // pretty non-performant, but atleast we no n of availabletimeslots won't be too large
+    const availabilityTimeHash = availabilityTimeSlots.map((timeSlot) => {
+      const newSlot = { [timeSlot]: 8 };
+      for (let i = 0; i < rows.length; i++) {
+        if (
+          timeSlot >= rows[i].reservation_time &&
+          timeSlot < rows[i].reservation_endtime
+        ) {
+          newSlot[timeSlot] = newSlot[timeSlot] - rows[i].number_of_lanes;
+        }
+      }
+      return newSlot;
+    });
 
     // we need to get the currently filled timeslots from reservations and remove them from availabilityTimeSlots
     // might need to refactor so that reservation table has a list of lane_ids instead of using the reservation_lane table
-    console.log({ reservationsRes: reservationsRes.rows });
 
-    console.log(availabilityTimeSlots);
-    return availabilityTimeSlots;
+    console.log(availabilityTimeHash);
+    return availabilityTimeHash;
   } catch (err) {
     console.error(err.message);
     throw new Error("error in timeSlotAvailabilityService");

@@ -6,7 +6,13 @@ function get30MinIntervals(startTime, endTime) {
 
   // Helper function to format a Date object into 'HH:MM' format
   function formatTime(date) {
-    return pad(date.getHours()) + ":" + pad(date.getMinutes());
+    return (
+      pad(date.getHours()) +
+      ":" +
+      pad(date.getMinutes()) +
+      ":" +
+      pad(date.getSeconds())
+    );
   }
 
   // Parse the input times into Date objects

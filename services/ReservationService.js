@@ -1,5 +1,6 @@
 import db from "../controllers/pgConnector.js";
 import isDateBlocked from "../helpers/isDateBlocked.js";
+import addMinutesToTimeString from "../helpers/addMinutesToTimeString.js";
 
 /**
  *
@@ -81,10 +82,12 @@ const reservationService = async (userId, date, time, duration, laneIds) => {
       throw new Error("One or more lanes are not available.");
     }
 
+    const endTime = addMinutesToTimeString(time, duration);
+
     const reservationRes = await client.query(
-      `INSERT INTO Reservations (user_id, reservation_date, reservation_time, duration_minutes, number_of_lanes)
-          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [userId, date, time, duration, laneIds.length]
+      `INSERT INTO Reservations (user_id, reservation_date, reservation_time, reservation_endtime, duration_minutes, number_of_lanes)
+          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+      [userId, date, time, endTime, duration, laneIds.length]
     );
 
     const reservation = reservationRes.rows[0];
